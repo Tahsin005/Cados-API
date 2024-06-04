@@ -4,6 +4,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db.models import Q
 
+from rest_framework.views import APIView
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 
 from . models import Advocate
 from . serializers import AdvocateSerializer
@@ -44,23 +48,55 @@ def advocate_list(request):
         serializer = AdvocateSerializer(advocate, many=False)
         return Response(serializer.data)
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def advocate_detail(request, username):
-    advocate = Advocate.objects.get(username=username)
-    if request.method == 'GET':
-        # data = username
+# @api_view(['GET', 'PUT', 'DELETE'])
+# def advocate_detail(request, username):
+#     advocate = Advocate.objects.get(username=username)
+#     if request.method == 'GET':
+#         # data = username
+#         serializer = AdvocateSerializer(advocate, many=False)
+#         return Response(serializer.data)
+    
+#     if request.method == 'PUT':
+#         advocate.username = request.data['username']
+#         advocate.bio = request.data['bio']
+        
+#         advocate.save()
+        
+#         serializer = AdvocateSerializer(advocate, many=False)
+#         return Response(serializer.data)
+    
+#     if request.method == 'DELETE':
+#         advocate.delete()
+#         return redirect('advocates')
+
+
+
+# Class based view on the advocate details page
+class AdvocateDetail(APIView):
+    def get_object(self, username):
+        try:
+            return Advocate.objects.get(username=username)
+        except Advocate.DoesNotExist:
+            return JsonResponse('Advocate does not exists!')
+    
+    def get(self, request, username):
+        # advocate = Advocate.objects.get(username=username)
+        advocate = self.get_object(username)
         serializer = AdvocateSerializer(advocate, many=False)
         return Response(serializer.data)
     
-    if request.method == 'PUT':
+    def put(self, request, username):
+        # advocate = Advocate.objects.get(username=username)
+        advocate = self.get_object(username)
+        
         advocate.username = request.data['username']
         advocate.bio = request.data['bio']
-        
         advocate.save()
         
         serializer = AdvocateSerializer(advocate, many=False)
         return Response(serializer.data)
     
-    if request.method == 'DELETE':
+    def delete(self, request, username):
+        advocate = self.get_object(username)
         advocate.delete()
-        return redirect('advocates')
+        return Response('advocates')
