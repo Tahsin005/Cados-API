@@ -9,8 +9,8 @@ from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 
-from . models import Advocate
-from . serializers import AdvocateSerializer
+from . models import Advocate, Company
+from . serializers import AdvocateSerializer, CompanySerializer
 # Create your views here.
 
 @api_view(['GET'])
@@ -100,3 +100,11 @@ class AdvocateDetail(APIView):
         advocate = self.get_object(username)
         advocate.delete()
         return Response('advocates')
+    
+    
+    
+@api_view(['GET'])
+def companies_list(request):
+    companies = Company.objects.all()
+    serializer = CompanySerializer(companies, many=True)
+    return Response(serializer.data)
